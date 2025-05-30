@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PG&E Rate Plan Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            background-color: #f7f9fc;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 750px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        h1 {
+            color: #1a3b5d;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        h2 {
+            color: #1a3b5d;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #005580;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        p.intro {
+            text-align: center;
+            color: #555;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #444;
+            font-size: 14px;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border: 1px solid #d1d9e6;
+            border-radius: 6px;
+            box-sizing: border-box;
+            background-color: #fdfdff;
+            font-size: 15px;
+            color: #333;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+        input[type="checkbox"] {
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        label.checkbox-label {
+            display: inline-block;
+            margin-top: 0;
+            margin-right: 15px;
+            font-weight: normal;
+        }
+        .plan-selection-group {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+        input[type="number"]:focus, select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+            outline: none;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.2s ease-in-out;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.toggle-button {
+            width: auto;
+            padding: 8px 15px;
+            font-size: 14px;
+            background-color: #6c757d;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        button.toggle-button:hover {
+            background-color: #5a6268;
+        }
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 10px 20px 20px 20px;
+            border: 1px solid #d1e7dd;
+            border-radius: 8px;
+            background-color: #f0f9f4;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .plan-details-container {
+        }
+        .plan-details {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #b8d8c8;
+            transition: border-color 0.3s;
+        }
+        .plan-details:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .results p, .results div.charge-breakdown {
+            margin: 8px 0;
+            font-size: 15px;
+            color: #2b573c;
+        }
+        .results p.total-cost {
+            font-weight: bold;
+            font-size: 16px;
+            color: #1e462f;
+            margin-top: 10px;
+        }
+        .results p#recommendation {
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 16px;
+            text-align: center;
+            padding-top: 15px;
+            border-top: 1px solid #d1e7dd;
+            transition: border-color 0.3s;
+        }
+        .note {
+            color: #555;
+            background-color: #eef2f7;
+            border: 1px solid #d1d9e6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 13px;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+        .note p { margin: 0; color: #444; }
+        .note strong { color: #1a3b5d; }
+        .charge-breakdown {
+            margin-left: 15px;
+            font-size: 0.9em;
+            color: #3a6b4b;
+        }
+        .charge-breakdown p { margin: 4px 0; }
+        #rateDetailsSection {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+        #rateDetailsSection h3 {
+            margin-top: 0;
+            color: #343a40;
+        }
+        #rateDetailsSection table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        #rateDetailsSection th, #rateDetailsSection td {
+            border: 1px solid #ced4da;
+            padding: 8px;
+            text-align: left;
+            transition: border-color 0.3s;
+        }
+        #rateDetailsSection th {
+            background-color: #f1f3f5;
+            transition: background-color 0.3s;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        body.dark-mode .container {
+            background-color: #2c2c2c;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 {
+            color: #d4d4d4;
+        }
+        body.dark-mode h2 { border-bottom-color: #444; }
+        body.dark-mode p.intro, body.dark-mode label.checkbox-label { color: #b0b0b0; }
+        body.dark-mode label { color: #c0c0c0; }
+        body.dark-mode input[type="number"], body.dark-mode select {
+            background-color: #383838;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+        body.dark-mode input[type="number"]:focus, body.dark-mode select:focus {
+            border-color: #007bff; /* Keep focus color or choose a light one */
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.35);
+        }
+        body.dark-mode .plan-selection-group {
+            background-color: #333;
+        }
+        body.dark-mode button {
+            background-color: #0056b3; /* Darker blue for primary button */
+        }
+        body.dark-mode button:hover {
+            background-color: #004494;
+        }
+        body.dark-mode button.toggle-button {
+            background-color: #4f5b62;
+        }
+        body.dark-mode button.toggle-button:hover {
+            background-color: #3b4348;
+        }
+        body.dark-mode .results {
+            background-color: #223a22;
+            border-color: #385d38;
+        }
+        body.dark-mode .plan-details { border-bottom-color: #446944; }
+        body.dark-mode .results p, body.dark-mode .results div.charge-breakdown { color: #a3cca3; }
+        body.dark-mode .results p.total-cost { color: #c8e6c9; }
+        body.dark-mode .results p#recommendation { border-top-color: #385d38; }
+        body.dark-mode .note {
+            background-color: #33383d;
+            border-color: #495057;
+            color: #adb5bd;
+        }
+        body.dark-mode .note p { color: #adb5bd; }
+        body.dark-mode .note strong { color: #d4d4d4; }
+        body.dark-mode #rateDetailsSection { background-color: #343a40; }
+        body.dark-mode #rateDetailsSection h3 { color: #c0c0c0; }
+        body.dark-mode #rateDetailsSection th, body.dark-mode #rateDetailsSection td { border-color: #495057; }
+        body.dark-mode #rateDetailsSection th { background-color: #3e444a; }
+
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 20px; }
+            h1 { font-size: 22px; }
+            .controls-row { flex-direction: column; align-items: stretch; }
+            .controls-row button { margin-bottom: 10px; }
+            .controls-row button:last-child { margin-bottom: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PG&E Rate Plan Cost Estimator</h1>
+        <p class="intro">Compare E-TOU-C and E-1 plans. Rates effective March 1, 2025.</p>
+
+        <label for="totalKWh">Total Monthly kWh Usage:</label>
+        <input type="number" id="totalKWh" value="500" placeholder="e.g., 500">
+
+        <label for="peakPercent">Percentage of Usage During Peak Hours (4 p.m. - 9 p.m.):</label>
+        <input type="number" id="peakPercent" value="30" min="0" max="100" placeholder="e.g., 30">
+
+        <label for="season">Season:</label>
+        <select id="season">
+            <option value="summer">Summer (June-Sept)</option>
+            <option value="winter">Winter (Oct-May)</option>
+        </select>
+
+        <label for="territory">Baseline Territory (from your PG&E bill):</label>
+        <select id="territory">
+            <option value="P">P</option>
+            <option value="Q">Q</option>
+            <option value="R">R</option>
+            <option value="S">S</option>
+            <option value="T">T</option>
+            <option value="V">V</option>
+            <option value="W">W</option>
+            <option value="X" selected>X</option>
+            <option value="Y">Y</option>
+            <option value="Z">Z</option>
+        </select>
+
+        <label for="heatingType">Heating Type:</label>
+        <select id="heatingType">
+            <option value="basic">Basic (Code B)</option>
+            <option value="allElectric">All-Electric (Code H)</option>
+        </select>
+
+        <label for="billingDays">Number of Days in Billing Cycle:</label>
+        <input type="number" id="billingDays" value="30" placeholder="e.g., 30">
+
+        <div class="plan-selection-group">
+            <label style="margin-top:0; margin-bottom: 10px;">Plans to Compare:</label>
+            <div>
+                <input type="checkbox" id="compareETOUC" checked> 
+                <label for="compareETOUC" class="checkbox-label">E-TOU-C</label>
+                <input type="checkbox" id="compareE1" checked> 
+                <label for="compareE1" class="checkbox-label">E-1</label>
+            </div>
+        </div>
+
+        <button onclick="calculateCosts()">Calculate Costs</button>
+
+        <div id="results" class="results" style="display:none;">
+            <h2>Estimated Costs</h2>
+            <div class="plan-details-container">
+                <div class="plan-details" id="etoucPlanDetails" style="display:none;">
+                    <h3>E-TOU-C Details:</h3>
+                    <div class="charge-breakdown" id="etoucBreakdown"></div>
+                    <p class="total-cost" id="etoucResult"></p>
+                </div>
+                
+                <div class="plan-details" id="e1PlanDetails" style="display:none;">
+                    <h3>E-1 Details:</h3>
+                    <div class="charge-breakdown" id="e1Breakdown"></div>
+                    <p class="total-cost" id="e1Result"></p>
+                </div>
+            </div>
+            <p id="recommendation"></p>
+            <div class="note">
+                <p><strong>Note:</strong> The "Total Estimated Cost" includes the effect of the Delivery Minimum Bill Amount ($0.40317/day), which acts as a floor for charges. Medical baseline customers receive a 50% discount on this minimum amount if it applies. Actual bills may include other taxes and fees not shown here.</p>
+            </div>
+        </div>
+        
+        <div class="controls-row">
+            <button class="toggle-button" id="darkModeToggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+            <button class="toggle-button" id="rateDetailsToggle" onclick="toggleRateDetails()">Show Rate Details</button>
+        </div>
+        <div id="rateDetailsSection" style="display:none;">
+            <h2>Rate Details (Effective March 1, 2025)</h2>
+            
+            <h3>Schedule E-TOU-C (Time-of-Use)</h3>
+            <p>Peak Hours: 4:00 PM - 9:00 PM Daily</p>
+            <p>Baseline Credit: $0.10301 / kWh (applied to usage within baseline allowance)</p>
+            <table>
+                <thead><tr><th>Season</th><th>Period</th><th>Total Bundled Rate</th><th>Generation Rate</th></tr></thead>
+                <tbody>
+                    <tr><td>Summer (Jun-Sep)</td><td>Peak</td><td>$0.62569</td><td>$0.25797</td></tr>
+                    <tr><td>Summer (Jun-Sep)</td><td>Off-Peak</td><td>$0.50269</td><td>$0.15497</td></tr>
+                    <tr><td>Winter (Oct-May)</td><td>Peak</td><td>$0.50086</td><td>$0.18725</td></tr>
+                    <tr><td>Winter (Oct-May)</td><td>Off-Peak</td><td>$0.47086</td><td>$0.16057</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Schedule E-1 (Tiered)</h3>
+            <table>
+                <thead><tr><th>Tier</th><th>Usage</th><th>Total Bundled Rate</th></tr></thead>
+                <tbody>
+                    <tr><td>Tier 1</td><td>0-100% of Baseline</td><td>$0.40730</td></tr>
+                    <tr><td>Tier 2</td><td>101-400% of Baseline</td><td>$0.51031</td></tr>
+                    <tr><td>Over 400%</td><td>Above 400% of Baseline</td><td>$0.51031</td></tr>
+                </tbody>
+            </table>
+            <p>E-1 Generation Rate (all tiers): $0.17896 / kWh</p>
+
+            <h3>Common Charges</h3>
+            <p>Delivery Minimum Bill Amount: $0.40317 / day</p>
+
+            <h3>Baseline Allowances (kWh/day)</h3>
+            <p>Refer to your PG&E bill or the "Baseline Quantities" table in Special Condition 1 (E-TOU-C) or Special Condition 2 (E-1) of the tariff sheets. The calculator uses these values internally based on your selected Territory and Heating Type.</p>
+        </div>
+
+    </div>
+
+    <script>
+        const baselineQuantities = {
+            P: { summer: { basic: 13.5, allElectric: 15.2 }, winter: { basic: 11.0, allElectric: 26.0 } },
+            Q: { summer: { basic: 9.8,  allElectric: 8.5 },  winter: { basic: 11.0, allElectric: 26.0 } },
+            R: { summer: { basic: 17.7, allElectric: 19.9 }, winter: { basic: 10.4, allElectric: 26.7 } },
+            S: { summer: { basic: 15.0, allElectric: 17.8 }, winter: { basic: 10.2, allElectric: 23.7 } },
+            T: { summer: { basic: 6.5,  allElectric: 7.1 },  winter: { basic: 7.5,  allElectric: 12.9 } },
+            V: { summer: { basic: 7.1,  allElectric: 10.4 }, winter: { basic: 8.1,  allElectric: 19.1 } },
+            W: { summer: { basic: 19.2, allElectric: 22.4 }, winter: { basic: 9.8,  allElectric: 19.0 } },
+            X: { summer: { basic: 9.8,  allElectric: 8.5 },  winter: { basic: 9.7,  allElectric: 14.6 } },
+            Y: { summer: { basic: 10.5, allElectric: 12.0 }, winter: { basic: 11.1, allElectric: 24.0 } },
+            Z: { summer: { basic: 5.9,  allElectric: 6.7 },  winter: { basic: 7.8,  allElectric: 15.7 } }
+        };
+
+        const rates = {
+            etouc: {
+                baselineCredit: 0.10301,
+                summer: { peak: 0.62569, offPeak: 0.50269, generationPeak: 0.25797, generationOffPeak: 0.15497 },
+                winter: { peak: 0.50086, offPeak: 0.47086, generationPeak: 0.18725, generationOffPeak: 0.16057 }
+            },
+            e1: {
+                tier1: 0.40730,
+                tier2: 0.51031,
+                over400: 0.51031,
+                generation: 0.17896
+            },
+            deliveryMinimumBillPerDay: 0.40317
+        };
+
+        function getDailyBaselineKWh(territory, season, heatingType) {
+            const terrData = baselineQuantities[territory];
+            if (!terrData) return 0;
+            const seasonData = terrData[season];
+            if (!seasonData) return 0;
+            return seasonData[heatingType] || 0;
+        }
+
+        function toggleRateDetails() {
+            const detailsSection = document.getElementById('rateDetailsSection');
+            const button = document.getElementById('rateDetailsToggle');
+            if (detailsSection.style.display === 'none') {
+                detailsSection.style.display = 'block';
+                button.textContent = 'Hide Rate Details';
+            } else {
+                detailsSection.style.display = 'none';
+                button.textContent = 'Show Rate Details';
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+            // document.getElementById('darkModeToggle').textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+        }
+
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            // document.getElementById('darkModeToggle').textContent = 'Light Mode';
+        }
+
+
+        function calculateCosts() {
+            const totalKWh = parseFloat(document.getElementById('totalKWh').value);
+            const peakPercentInput = parseFloat(document.getElementById('peakPercent').value);
+            const season = document.getElementById('season').value;
+            const territory = document.getElementById('territory').value;
+            const heatingType = document.getElementById('heatingType').value;
+            const billingDays = parseInt(document.getElementById('billingDays').value);
+
+            const compareETOUC = document.getElementById('compareETOUC').checked;
+            const compareE1 = document.getElementById('compareE1').checked;
+
+            if (isNaN(totalKWh) || totalKWh < 0 || 
+                isNaN(peakPercentInput) || peakPercentInput < 0 || peakPercentInput > 100 || 
+                isNaN(billingDays) || billingDays <= 0) {
+                alert("Please enter valid positive numbers for kWh, peak percentage (0-100), and billing days.");
+                return;
+            }
+            if (!compareETOUC && !compareE1) {
+                alert("Please select at least one plan to compare.");
+                document.getElementById('results').style.display = 'none';
+                return;
+            }
+
+            const peakPercent = peakPercentInput / 100;
+            const dailyBaseline = getDailyBaselineKWh(territory, season, heatingType);
+            const totalBaselineAllowance = dailyBaseline * billingDays;
+            const deliveryMinimumForPeriod = rates.deliveryMinimumBillPerDay * billingDays;
+
+            let etoucTotalCost = Infinity; 
+            let e1TotalCost = Infinity;    
+
+            const etoucPlanDetailsDiv = document.getElementById('etoucPlanDetails');
+            const e1PlanDetailsDiv = document.getElementById('e1PlanDetails');
+
+            etoucPlanDetailsDiv.style.display = 'none'; 
+            e1PlanDetailsDiv.style.display = 'none';   
+
+            if (compareETOUC) {
+                etoucPlanDetailsDiv.style.display = 'block';
+                const currentEtoucRates = rates.etouc[season];
+                const baselineCreditRate = rates.etouc.baselineCredit;
+                
+                const peakKWh = totalKWh * peakPercent;
+                const offPeakKWh = totalKWh * (1 - peakPercent);
+                const baselineUsageKWh = Math.min(totalKWh, totalBaselineAllowance);
+
+                const peakCostComponentBundled = parseFloat((peakKWh * currentEtoucRates.peak).toFixed(2));
+                const offPeakCostComponentBundled = parseFloat((offPeakKWh * currentEtoucRates.offPeak).toFixed(2));
+                const baselineCreditComponent = parseFloat((baselineUsageKWh * baselineCreditRate).toFixed(2));
+                
+                let etoucEnergySubtotalCost = peakCostComponentBundled + offPeakCostComponentBundled - baselineCreditComponent;
+
+                const etoucGenerationOnlyCost = (peakKWh * currentEtoucRates.generationPeak) + (offPeakKWh * currentEtoucRates.generationOffPeak);
+                const etoucBillIfMinimumApplies = etoucGenerationOnlyCost + deliveryMinimumForPeriod;
+                etoucTotalCost = Math.max(etoucEnergySubtotalCost, etoucBillIfMinimumApplies);
+
+                let etoucBreakdownHtml = `<p>Peak Usage: ${peakKWh.toFixed(2)} kWh @ $${currentEtoucRates.peak.toFixed(5)}/kWh = $${peakCostComponentBundled.toFixed(2)}</p>`;
+                etoucBreakdownHtml += `<p>Off-Peak Usage: ${offPeakKWh.toFixed(2)} kWh @ $${currentEtoucRates.offPeak.toFixed(5)}/kWh = $${offPeakCostComponentBundled.toFixed(2)}</p>`;
+                etoucBreakdownHtml += `<p>Baseline Credit: ${baselineUsageKWh.toFixed(2)} kWh @ -$${baselineCreditRate.toFixed(5)}/kWh = -$${baselineCreditComponent.toFixed(2)}</p>`;
+                if (etoucTotalCost > etoucEnergySubtotalCost) {
+                    etoucBreakdownHtml += `<p style="font-style: italic;">(Delivery Minimum Bill applied, raising cost from $${etoucEnergySubtotalCost.toFixed(2)})</p>`;
+                }
+                document.getElementById('etoucBreakdown').innerHTML = etoucBreakdownHtml;
+                document.getElementById('etoucResult').textContent = `E-TOU-C Total Estimated Cost: $${etoucTotalCost.toFixed(2)}`;
+            }
+
+            if (compareE1) {
+                e1PlanDetailsDiv.style.display = 'block';
+                let e1EnergySubtotalCost = 0;
+                let remainingKWhE1 = totalKWh;
+                let e1BreakdownHtml = "";
+
+                const tier1Usage = Math.min(remainingKWhE1, totalBaselineAllowance);
+                const tier1CostComponent = parseFloat((tier1Usage * rates.e1.tier1).toFixed(2));
+                e1EnergySubtotalCost += tier1CostComponent;
+                remainingKWhE1 -= tier1Usage;
+                e1BreakdownHtml += `<p>Tier 1 Usage: ${tier1Usage.toFixed(2)} kWh @ $${rates.e1.tier1.toFixed(5)}/kWh = $${tier1CostComponent.toFixed(2)}</p>`;
+
+                if (remainingKWhE1 > 0) {
+                    const tier2BucketSize = totalBaselineAllowance * 3;
+                    const tier2Usage = Math.min(remainingKWhE1, tier2BucketSize);
+                    const tier2CostComponent = parseFloat((tier2Usage * rates.e1.tier2).toFixed(2));
+                    e1EnergySubtotalCost += tier2CostComponent;
+                    remainingKWhE1 -= tier2Usage;
+                    e1BreakdownHtml += `<p>Tier 2 Usage: ${tier2Usage.toFixed(2)} kWh @ $${rates.e1.tier2.toFixed(5)}/kWh = $${tier2CostComponent.toFixed(2)}</p>`;
+                }
+
+                if (remainingKWhE1 > 0) {
+                    const over400Usage = remainingKWhE1;
+                    const over400CostComponent = parseFloat((over400Usage * rates.e1.over400).toFixed(2));
+                    e1EnergySubtotalCost += over400CostComponent;
+                    e1BreakdownHtml += `<p>Over 400% Usage: ${over400Usage.toFixed(2)} kWh @ $${rates.e1.over400.toFixed(5)}/kWh = $${over400CostComponent.toFixed(2)}</p>`;
+                }
+                
+                const e1GenerationOnlyCost = totalKWh * rates.e1.generation;
+                const e1BillIfMinimumApplies = e1GenerationOnlyCost + deliveryMinimumForPeriod;
+                e1TotalCost = Math.max(e1EnergySubtotalCost, e1BillIfMinimumApplies);
+                
+                if (e1TotalCost > e1EnergySubtotalCost) {
+                    e1BreakdownHtml += `<p style="font-style: italic;">(Delivery Minimum Bill applied, raising cost from $${e1EnergySubtotalCost.toFixed(2)})</p>`;
+                }
+                document.getElementById('e1Breakdown').innerHTML = e1BreakdownHtml;
+                document.getElementById('e1Result').textContent = `E-1 Total Estimated Cost: $${e1TotalCost.toFixed(2)}`;
+            }
+            
+            const recommendationElement = document.getElementById('recommendation');
+            let recommendationText = "";
+            recommendationElement.style.color = document.body.classList.contains('dark-mode') ? '#d4d4d4' : '#1a3b5d';
+
+
+            if (compareETOUC && compareE1) {
+                const difference = Math.abs(e1TotalCost - etoucTotalCost);
+                if (etoucTotalCost < e1TotalCost) {
+                    recommendationText = `E-TOU-C appears to be cheaper by $${difference.toFixed(2)}.`;
+                } else if (e1TotalCost < etoucTotalCost) {
+                    recommendationText = `E-1 appears to be cheaper by $${difference.toFixed(2)}.`;
+                    recommendationElement.style.color = document.body.classList.contains('dark-mode') ? '#81c784' : '#28a745';
+                } else {
+                    recommendationText = "Both plans estimate to a similar total cost.";
+                }
+            } else if (compareETOUC) {
+                recommendationText = "Displaying E-TOU-C cost estimate.";
+            } else if (compareE1) {
+                recommendationText = "Displaying E-1 cost estimate.";
+            }
+            recommendationElement.textContent = recommendationText;
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
